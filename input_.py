@@ -2,12 +2,18 @@ import math
 
 data = []
 # input data from the file
-while 1:
-    try:
-        sud = [int(x) for x in input().split()]
+
+# while 1:
+#     try:
+#         sud = [int(x) for x in input().split()]
+#         data.append(sud)
+#     except EOFError:
+#         break
+
+with open('test.txt') as f:
+    for i in f.readlines():
+        sud = [int(x) for x in i.split()]
         data.append(sud)
-    except EOFError:
-        break
 
 
 """
@@ -51,13 +57,23 @@ cus = data[0][0]
 for k, v in dic.items():
     if cus != k[0]:
         cus = k[0]
-        while count % 4 != 0:
+        while count % bit_size != 0:
             count += 1
     for i in v:
         bit_map[i - 1][count] = 1
 
     count += 1
-print(bit_map)
+
+def calculate_support(item_bit_map, bit_size, cus_num):
+    support = 0
+    for i in range(cus_num):
+        # print(item_bit_map[bit_size*i:bit_size*(i+1)])
+        if 1 in item_bit_map[bit_size * i:bit_size * (i + 1)]:
+            support += 1
+    return support
+
+
+
 
 
 
