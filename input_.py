@@ -35,3 +35,32 @@ for i in sud.values():
 bit_size = 2 ** math.ceil(math.log(bit_size, 2))
 
 # Undo: create bitmap with above parameter
+bit_map = [[0 for bit in range(cus_num*bit_size)] for item in range(item_num)]
+
+# calculate item set group by each transaction
+dic = {}
+for i in data:
+    if (i[0], i[1]) not in dic:
+        dic[(i[0], i[1])] = [i[2]]
+    else:
+        dic[(i[0], i[1])].append(i[2])
+
+# generate bitmap according to transaction
+count = 0
+cus = data[0][0]
+for k, v in dic.items():
+    if cus != k[0]:
+        cus = k[0]
+        while count % 4 != 0:
+            count += 1
+    for i in v:
+        bit_map[i - 1][count] = 1
+
+    count += 1
+print(bit_map)
+
+
+
+
+
+
