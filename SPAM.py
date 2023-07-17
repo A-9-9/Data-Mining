@@ -22,6 +22,7 @@ Parameter definition:
 minSup: Support threshold  
 """
 support = 0
+maximum_size_of_sequence = 3
 bitmaps = [
     [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
     [1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0],
@@ -31,6 +32,7 @@ bitmaps = [
 S = [0, 1, 2, 3]
 I = [0, 1, 2, 3]
 items = ['a', 'b', 'c', 'd']
+
 
 # Definition for Lexicographic tree node.
 class TreeNode:
@@ -62,44 +64,47 @@ def S_step(bit_map_origin, bit_map_merged, bit_size):
 
 
 def DFS_Pruning(n, S, I):
-    if n.bit_map != None and len(n.val) > 3:
+    # Limit sequence size and detect if the node is root or not on recursive function.
+    if n.bit_map is not None and len(n.val) > maximum_size_of_sequence:
         return
     S_temp = []
-    S_temp_nodes = []
+    # S_temp_nodes = []
     I_temp = []
     I_temp_nodes = []
 
     print(n.val)
     print(n.bit_map)
-    if n.bit_map != None:
+    if n.bit_map is not None:
         print(calculate_support(n.bit_map, 4, 3))
-    print('='*20)
-    # add the candidate into the node sub nodes
-    for i in S:
-        # c_s = calculate_support(S_step(n.bit_map, bitmaps[i]), 4, 3)
+    print('=' * 20)
 
-        # if using sets of all 1 in root set, there were be an error while doing s-step transform
-        if n.bit_map == None:
+    '''
+    Add an item in the item set S by measuring whether the item is a high-frequency value.
+    While the current node is a root, then set the bitmap with a specific item, 
+    otherwise, do the s-step to merge both two bitmaps and calculate absolute support.
+    
+    Compare the sequence frequency, then identify whether the current node is root or not, 
+    creating a new node with a specific item and bitmap.
+    
+    Recursive the DFS function by traversing s-temp
+    '''
+    for i in S:
+        if n.bit_map is None:
             c_s = calculate_support(bitmaps[i], 4, 3)
         else:
-            sud_bitmap = S_step(copy.copy(n.bit_map), bitmaps[i], 4)
-            c_s = calculate_support(sud_bitmap, 4, 3)
-            pass
+            merged_bitmap = S_step(copy.copy(n.bit_map), bitmaps[i], 4)
+            c_s = calculate_support(merged_bitmap, 4, 3)
 
         if c_s > support:
             S_temp.append(i)
-
-            # new a new node when the new sequence is frequent
-            if n.bit_map == None:
+            if n.bit_map is None:
                 S_sud_node = TreeNode([items[i]], bitmaps[i], [])
             else:
                 sud = copy.copy(n.val)
                 sud.append(items[i])
-
-                S_sud_node = TreeNode(sud, sud_bitmap, [])
+                S_sud_node = TreeNode(sud, merged_bitmap, [])
 
             n.sub_nodes.append(S_sud_node)
-            S_temp_nodes.append(S_sud_node)
 
 
     for i in range(len(S_temp)):
@@ -107,17 +112,7 @@ def DFS_Pruning(n, S, I):
         if S_temp[i] != S_temp[-1]:
             s_greater_than_i = S_temp[i + 1:]
 
-        DFS_Pruning(S_temp_nodes[i], S_temp, s_greater_than_i)
-
-    # for i in S_temp:
-    #     s_greater_than_i = []
-    #     if i != S_temp[-1]:
-    #         s_greater_than_i = S_temp[S_temp.index(i) + 1:]
-
-        # new the node when recursive call DFS function
-        # DFS_Pruning(S_step(n.bit_map, bitmaps[i]), S_temp, s_greater_than_i)
-        # DFS_Pruning(TreeNode('', S_step(n.bit_map, bitmaps[i]), []), S_temp, s_greater_than_i)
-
+        DFS_Pruning(n.sub_nodes[i], S_temp, s_greater_than_i)
 
     # for i in I:
     #     # 4, 3 = bitmap numbers, customer numbers
@@ -135,7 +130,6 @@ def DFS_Pruning(n, S, I):
 
 root = TreeNode('null', None, [])
 DFS_Pruning(root, S, I)
-
 
 # print(bitmaps[0])
 # print(bitmaps[1])

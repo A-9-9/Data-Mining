@@ -73,6 +73,8 @@ def calculate_support(item_bit_map, bit_size, cus_num):
     return support
 
 
+print(bit_map)
+
 
 
 
