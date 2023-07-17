@@ -64,6 +64,7 @@ def S_step(bit_map_origin, bit_map_merged, bit_size):
 
 
 def DFS_Pruning(n, S, I):
+    global count
     # Limit sequence size and detect if the node is root or not on recursive function.
     if n.bit_map is not None and len(n.val) > maximum_size_of_sequence:
         return
@@ -73,7 +74,8 @@ def DFS_Pruning(n, S, I):
     I_temp_nodes = []
 
     print(n.val)
-    print(n.bit_map)
+    # print(n.bit_map)
+    # Exclusion root node
     if n.bit_map is not None:
         print(calculate_support(n.bit_map, 4, 3))
     print('=' * 20)
@@ -106,7 +108,6 @@ def DFS_Pruning(n, S, I):
 
             n.sub_nodes.append(S_sud_node)
 
-
     for i in range(len(S_temp)):
         s_greater_than_i = []
         if S_temp[i] != S_temp[-1]:
@@ -114,22 +115,32 @@ def DFS_Pruning(n, S, I):
 
         DFS_Pruning(n.sub_nodes[i], S_temp, s_greater_than_i)
 
-    # for i in I:
-    #     # 4, 3 = bitmap numbers, customer numbers
-    #     if calculate_support([x & y for x, y in zip(n.bit_map, bitmaps[i])], 4, 3) > support:
-    #         I_temp.append(i)
-    #
-    # for i in I_temp:
-    #     # all elements in I-temp greater than i
-    #     i_greater_than_i = []
-    #     if i != I_temp[-1]:
-    #         i_greater_than_i = I_temp[I_temp.index(i) + 1:]
-    #
-    #     DFS_Pruning(I_step(n.bit_map, bitmaps[i]), S_temp, i_greater_than_i)
+    for i in I:
+        # Error occurs without adding this condition, but total sequence numbers are the same.
+        if n.bit_map is None:
+            break
+
+        merged_bitmap_I = I_step(copy.copy(n.bit_map), bitmaps[i])
+        if calculate_support(merged_bitmap_I, 4, 3) > support:
+            I_temp.append(i)
+            sud = copy.copy(n.val)
+            sud[-1] += ',%s' % (items[i])
+            I_sud_node = TreeNode(sud, merged_bitmap_I, [])
+            I_temp_nodes.append(I_sud_node)
+            # could separate the sub-nodes into S-sub-nodes and I-sub-nodes from the tree structure,
+            # and remove the relative data like S_temp_nodes and I_temp_nodes
+            # n.sub_nodes.append(I_sud_node)
+
+    for i in range(len(I_temp)):
+        i_greater_than_i = []
+        if I_temp[i] != I_temp[-1]:
+            i_greater_than_i = I_temp[i + 1:]
+
+        DFS_Pruning(I_temp_nodes[i], S_temp, i_greater_than_i)
 
 
+# count = 0
 root = TreeNode('null', None, [])
 DFS_Pruning(root, S, I)
+# print(count)
 
-# print(bitmaps[0])
-# print(bitmaps[1])
