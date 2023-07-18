@@ -3,10 +3,11 @@ import math
 
 # Definition for Lexicographic tree node.
 class TreeNode:
-    def __init__(self, val, bit_map, sub_nodes):
+    def __init__(self, val, bit_map, s_sub_nodes, i_sub_nodes):
         self.val = val
         self.bit_map = bit_map
-        self.sub_nodes = sub_nodes
+        self.s_sub_nodes = s_sub_nodes
+        self.i_sub_nodes = i_sub_nodes
 
 
 def I_step(bit_map_origin, bit_map_merged):
@@ -49,9 +50,7 @@ def DFS_Pruning(n, S, I):
     if n.bit_map is not None and len(n.val) > maximum_size_of_sequence:
         return
     S_temp = []
-    # S_temp_nodes = []
     I_temp = []
-    I_temp_nodes = []
 
     print(n.val)
     # print(n.bit_map)
@@ -80,20 +79,20 @@ def DFS_Pruning(n, S, I):
         if c_s > support:
             S_temp.append(i)
             if n.bit_map is None:
-                S_sud_node = TreeNode([items[i]], bitmaps[i], [])
+                S_sud_node = TreeNode([items[i]], bitmaps[i], [], [])
             else:
                 sud = copy.copy(n.val)
                 sud.append(items[i])
-                S_sud_node = TreeNode(sud, merged_bitmap, [])
+                S_sud_node = TreeNode(sud, merged_bitmap, [], [])
 
-            n.sub_nodes.append(S_sud_node)
+            n.s_sub_nodes.append(S_sud_node)
 
     for i in range(len(S_temp)):
         s_greater_than_i = []
         if S_temp[i] != S_temp[-1]:
             s_greater_than_i = S_temp[i + 1:]
-
-        DFS_Pruning(n.sub_nodes[i], S_temp, s_greater_than_i)
+        recursive_instructions_count += 1
+        DFS_Pruning(n.s_sub_nodes[i], S_temp, s_greater_than_i)
 
     for i in I:
         # Error occurs without adding this condition, but total sequence numbers are the same.
@@ -105,18 +104,15 @@ def DFS_Pruning(n, S, I):
             I_temp.append(i)
             sud = copy.copy(n.val)
             sud[-1] += ',%s' % (items[i])
-            I_sud_node = TreeNode(sud, merged_bitmap_I, [])
-            I_temp_nodes.append(I_sud_node)
-            # could separate the sub-nodes into S-sub-nodes and I-sub-nodes from the tree structure,
-            # and remove the relative data like S_temp_nodes and I_temp_nodes
-            # n.sub_nodes.append(I_sud_node)
+            I_sud_node = TreeNode(sud, merged_bitmap_I, [], [])
+            n.i_sub_nodes.append(I_sud_node)
 
     for i in range(len(I_temp)):
         i_greater_than_i = []
         if I_temp[i] != I_temp[-1]:
             i_greater_than_i = I_temp[i + 1:]
-
-        DFS_Pruning(I_temp_nodes[i], S_temp, i_greater_than_i)
+        recursive_instructions_count += 1
+        DFS_Pruning(n.i_sub_nodes[i], S_temp, i_greater_than_i)
 
 
 # input data from text file
@@ -201,11 +197,12 @@ I = [x for x in range(item_numbers)]
 items = ['a', 'b', 'c', 'd']
 
 
+
 """
 --------------------Main--------------------
 """
 
 recursive_instructions_count = 0
-root = TreeNode('null', None, [])
+root = TreeNode('null', None, [], [])
 DFS_Pruning(root, S, I)
 print(recursive_instructions_count)
