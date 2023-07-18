@@ -43,7 +43,7 @@ bit_size = 2 ** math.ceil(math.log(bit_size, 2))
 # Undo: create bitmap with above parameter
 bit_map = [[0 for bit in range(cus_num*bit_size)] for item in range(item_num)]
 
-# calculate item set group by each transaction
+# calculate item set group by customers and transactions
 dic = {}
 for i in data:
     if (i[0], i[1]) not in dic:
@@ -51,17 +51,26 @@ for i in data:
     else:
         dic[(i[0], i[1])].append(i[2])
 
-# generate bitmap according to transaction
+# generate bitmap according to transaction and map with customer
 count = 0
+sequence_count = -1
+sud_sequence_count = 0
 cus = data[0][0]
 for k, v in dic.items():
+    # check if customer changed
+
     if cus != k[0]:
         cus = k[0]
+        # if customer changed, fill up bitmap and switch to the next customer
         while count % bit_size != 0:
             count += 1
-    for i in v:
-        bit_map[i - 1][count] = 1
 
+        sequence_count = max(sequence_count, sud_sequence_count)
+        sud_sequence_count = 0
+    for i in v:
+        # bitmap[item][transaction]
+        bit_map[i - 1][count] = 1
+    sud_sequence_count += 1
     count += 1
 
 def calculate_support(item_bit_map, bit_size, cus_num):
@@ -73,8 +82,14 @@ def calculate_support(item_bit_map, bit_size, cus_num):
     return support
 
 
-print(bit_map)
-
+# print(data)
+# print(bit_map)
+print(dic)
+# print(sequence_count)
+# print(cus_num)
+# print(item_num)
+# print(bit_size)
+# print(sud)
 
 
 

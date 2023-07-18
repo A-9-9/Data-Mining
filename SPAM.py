@@ -1,38 +1,5 @@
-"""
-Data: CID, TID, Item
-(1) Pruning candidate from Sn(s-extensions).
-(2) Recursively doing S-step(sequence-extension step) with specific Sn.
-(3) Pruning candidate from In(i-extensions).
-(4) Recursively doing I-step(itemset-extension step) with specific In.
-"""
 import copy
-
-from input_ import calculate_support
-
-"""
-Questions:
-(1) What does the bitmap work? Is it works for efficient counting the sequence support that 
-    use to judge the sequence frequency between each transaction and each node of tree?
-(2) When we are pruning Sn during generation the tree, we pruning Sn by using the bitmap support 
-    counting the frequency   
-"""
-
-"""
-Parameter definition:
-minSup: Support threshold  
-"""
-support = 0
-maximum_size_of_sequence = 3
-bitmaps = [
-    [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-    [1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0],
-    [0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-    [1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-]
-S = [0, 1, 2, 3]
-I = [0, 1, 2, 3]
-items = ['a', 'b', 'c', 'd']
-
+import math
 
 # Definition for Lexicographic tree node.
 class TreeNode:
@@ -63,8 +30,21 @@ def S_step(bit_map_origin, bit_map_merged, bit_size):
     return [x & y for x, y in zip(li2, bit_map_merged)]
 
 
+"""
+# Calculate support according to relative bitmap.
+# First, split the bitmap by customer number, each customer has a specific size of the bitmap, 
+# thus we could count their support.
+"""
+def calculate_support(item_bit_map, bit_size, cus_num):
+    support = 0
+    for i in range(cus_num):
+        if 1 in item_bit_map[bit_size * i:bit_size * (i + 1)]:
+            support += 1
+    return support
+
+
 def DFS_Pruning(n, S, I):
-    global count
+    global recursive_instructions_count
     # Limit sequence size and detect if the node is root or not on recursive function.
     if n.bit_map is not None and len(n.val) > maximum_size_of_sequence:
         return
@@ -139,8 +119,93 @@ def DFS_Pruning(n, S, I):
         DFS_Pruning(I_temp_nodes[i], S_temp, i_greater_than_i)
 
 
-# count = 0
+# input data from text file
+data = []
+with open('test.txt') as f:
+    for i in f.readlines():
+        sud = [int(x) for x in i.split()]
+        data.append(sud)
+
+"""
+--------------------Data preprocessing--------------------
+# Input data definition: CID, TID, Item
+# customer_numbers: number of customers.
+# item_numbers: number of items.
+# bit_size: bit map size that according to the maximum size of sequences.
+----------------------------------------------------------
+"""
+customer_numbers = -1
+item_numbers = -1
+bit_size = -1
+
+sud = {}
+for customer, transaction, item in data:
+    customer_numbers = max(customer_numbers, customer)
+    item_numbers = max(item_numbers, item)
+    if customer not in sud:
+        sud[customer] = [(customer, transaction)]
+    else:
+        if not (customer, transaction) in sud[customer]:
+            sud[customer].append((customer, transaction))
+
+for i in sud.values():
+    bit_size = max(bit_size, len(i))
+
+bit_size = 2 ** math.ceil(math.log(bit_size, 2))
+bitmaps = [[0 for bit in range(customer_numbers * bit_size)] for item in range(item_numbers)]
+
+# Calculate item set group by customers and transactions
+dic = {}
+for i in data:
+    if (i[0], i[1]) not in dic:
+        dic[(i[0], i[1])] = [i[2]]
+    else:
+        dic[(i[0], i[1])].append(i[2])
+
+# Generate bitmap according to transaction and map with customer, and calculate the maximum size of sequence.
+count = 0
+cus = data[0][0]
+maximum_size_of_sequence = -1
+temporary_sequence_count = 0
+for k, v in dic.items():
+    # check if customer changed
+    if cus != k[0]:
+        cus = k[0]
+        # if customer changed, fill up bitmap and switch to the next customer
+        while count % bit_size != 0:
+            count += 1
+
+        maximum_size_of_sequence = max(maximum_size_of_sequence, temporary_sequence_count)
+        sud_sequence_count = 0
+    for i in v:
+        # bitmap[item][transaction]
+        bitmaps[i - 1][count] = 1
+
+    temporary_sequence_count += 1
+    count += 1
+
+"""
+--------------------Parameter definition--------------------
+# support: support threshold.
+# S: set of candidate items considered for S-step.
+# I: set of candidate items considered for I-step.
+# items: set of items.
+------------------------------------------------------------
+"""
+support = 0
+# Assume that all the item index is in order.
+# S = [0, 1, 2, 3]
+# I = [0, 1, 2, 3]
+S = [x for x in range(item_numbers)]
+I = [x for x in range(item_numbers)]
+items = ['a', 'b', 'c', 'd']
+
+
+"""
+--------------------Main--------------------
+"""
+
+recursive_instructions_count = 0
 root = TreeNode('null', None, [])
 DFS_Pruning(root, S, I)
-# print(count)
-
+print(recursive_instructions_count)
