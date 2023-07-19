@@ -53,7 +53,7 @@ def DFS_Pruning(n, S, I):
     I_temp = []
 
     print(n.val)
-    # print(n.bit_map)
+    print(n.bit_map)
     # Exclusion root node
     if n.bit_map is not None:
         print(calculate_support(n.bit_map, 4, 3))
@@ -206,3 +206,30 @@ recursive_instructions_count = 0
 root = TreeNode('null', None, [], [])
 DFS_Pruning(root, S, I)
 print(recursive_instructions_count)
+
+
+def BFS(n):
+    print("==========Level present==========")
+    queue = [root]
+    level = 0
+    while len(queue) > 0:
+        count = len(queue)
+        print('Level: %s' % level)
+        level += 1
+        print([x.val for x in queue])
+        for i in range(count):
+            node = queue[0]
+            for s in node.s_sub_nodes:
+                if s != None:
+                    queue.append(s)
+
+            for i in node.i_sub_nodes:
+                if i != None:
+                    queue.append(i)
+            del queue[0]
+
+
+    print("==========End of present==========")
+
+
+BFS(root)
