@@ -10,7 +10,7 @@ data = []
 #     except EOFError:
 #         break
 
-with open('test.txt') as f:
+with open('data4.txt') as f:
     for i in f.readlines():
         sud = [int(x) for x in i.split()]
         data.append(sud)
@@ -24,12 +24,15 @@ with open('test.txt') as f:
 """
 cus_num = -1
 item_num = -1
+item_hash_set = set()
 bit_size = -1
 sud = {}
 for customer, transaction, item in data:
     cus_num = max(cus_num, customer)
     item_num = max(item_num, item)
-    if not customer in sud:
+    if item not in item_hash_set:
+        item_hash_set.add(item)
+    if customer not in sud:
         sud[customer] = [(customer, transaction)]
     else:
         if not (customer, transaction) in sud[customer]:
@@ -41,7 +44,9 @@ for i in sud.values():
 bit_size = 2 ** math.ceil(math.log(bit_size, 2))
 
 # Undo: create bitmap with above parameter
-bit_map = [[0 for bit in range(cus_num*bit_size)] for item in range(item_num)]
+# bit_map = [[0 for bit in range(cus_num*bit_size)] for item in range(item_num)]
+bit_map = [[0 for bit in range(cus_num*bit_size)] for item in range(len(item_hash_set))]
+item_hash_set_sorted = {x: y for x, y in zip(sorted(item_hash_set), range(len(item_hash_set)))}
 
 # calculate item set group by customers and transactions
 dic = {}
@@ -56,6 +61,7 @@ count = 0
 sequence_count = -1
 sud_sequence_count = 0
 cus = data[0][0]
+
 for k, v in dic.items():
     # check if customer changed
 
@@ -69,7 +75,8 @@ for k, v in dic.items():
         sud_sequence_count = 0
     for i in v:
         # bitmap[item][transaction]
-        bit_map[i - 1][count] = 1
+        bit_map[item_hash_set_sorted[i] - 1][count] = 1
+        # bit_map[i - 1][count] = 1
     sud_sequence_count += 1
     count += 1
 
@@ -83,13 +90,18 @@ def calculate_support(item_bit_map, bit_size, cus_num):
 
 
 # print(data)
-# print(bit_map)
-print(dic)
+print(item_hash_set_sorted)
+# print([x for x in item_hash_set_sorted.keys()])
+# print(bit_map[item_hash_set_sorted[3704]-1])
+# print(len(item_hash_set))
+# print(dic)
 # print(sequence_count)
 # print(cus_num)
 # print(item_num)
 # print(bit_size)
 # print(sud)
+# print(item_hash_set)
+# print(bit_map)
 
 
 

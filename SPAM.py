@@ -45,7 +45,7 @@ def calculate_support(item_bit_map, bit_size, cus_num):
 
 
 def DFS_Pruning(n, S, I):
-    global recursive_instructions_count
+    global recursive_instructions_count, customer_numbers, bit_size
     # Limit sequence size and detect if the node is root or not on recursive function.
     if n.bit_map is not None and len(n.val) > maximum_size_of_sequence:
         return
@@ -56,7 +56,7 @@ def DFS_Pruning(n, S, I):
     print(n.bit_map)
     # Exclusion root node
     if n.bit_map is not None:
-        print(calculate_support(n.bit_map, 4, 3))
+        print(calculate_support(n.bit_map, bit_size, customer_numbers))
     print('=' * 20)
 
     '''
@@ -71,10 +71,10 @@ def DFS_Pruning(n, S, I):
     '''
     for i in S:
         if n.bit_map is None:
-            c_s = calculate_support(bitmaps[i], 4, 3)
+            c_s = calculate_support(bitmaps[i], bit_size, customer_numbers)
         else:
-            merged_bitmap = S_step(copy.copy(n.bit_map), bitmaps[i], 4)
-            c_s = calculate_support(merged_bitmap, 4, 3)
+            merged_bitmap = S_step(copy.copy(n.bit_map), bitmaps[i], bit_size)
+            c_s = calculate_support(merged_bitmap, bit_size, customer_numbers)
 
         if c_s > support:
             S_temp.append(i)
@@ -100,7 +100,7 @@ def DFS_Pruning(n, S, I):
             break
 
         merged_bitmap_I = I_step(copy.copy(n.bit_map), bitmaps[i])
-        if calculate_support(merged_bitmap_I, 4, 3) > support:
+        if calculate_support(merged_bitmap_I, bit_size, customer_numbers) > support:
             I_temp.append(i)
             sud = copy.copy(n.val)
             sud[-1] += ',%s' % (items[i])
@@ -117,7 +117,7 @@ def DFS_Pruning(n, S, I):
 
 # input data from text file
 data = []
-with open('test.txt') as f:
+with open('data4.txt') as f:
     for i in f.readlines():
         sud = [int(x) for x in i.split()]
         data.append(sud)
@@ -133,11 +133,13 @@ with open('test.txt') as f:
 customer_numbers = -1
 item_numbers = -1
 bit_size = -1
-
+item_hash_set = set()
 sud = {}
 for customer, transaction, item in data:
     customer_numbers = max(customer_numbers, customer)
-    item_numbers = max(item_numbers, item)
+    # item_numbers = max(item_numbers, item)
+    if item not in item_hash_set:
+        item_hash_set.add(item)
     if customer not in sud:
         sud[customer] = [(customer, transaction)]
     else:
@@ -148,8 +150,9 @@ for i in sud.values():
     bit_size = max(bit_size, len(i))
 
 bit_size = 2 ** math.ceil(math.log(bit_size, 2))
-bitmaps = [[0 for bit in range(customer_numbers * bit_size)] for item in range(item_numbers)]
-
+# bitmaps = [[0 for bit in range(customer_numbers * bit_size)] for item in range(item_numbers)]
+bitmaps = [[0 for bit in range(customer_numbers*bit_size)] for item in range(len(item_hash_set))]
+item_hash_set_sorted = {x: y for x, y in zip(sorted(item_hash_set), range(len(item_hash_set)))}
 # Calculate item set group by customers and transactions
 dic = {}
 for i in data:
@@ -175,7 +178,8 @@ for k, v in dic.items():
         sud_sequence_count = 0
     for i in v:
         # bitmap[item][transaction]
-        bitmaps[i - 1][count] = 1
+        # bitmaps[i - 1][count] = 1
+        bitmaps[item_hash_set_sorted[i] - 1][count] = 1
 
     temporary_sequence_count += 1
     count += 1
@@ -192,11 +196,16 @@ support = 0
 # Assume that all the item index is in order.
 # S = [0, 1, 2, 3]
 # I = [0, 1, 2, 3]
-S = [x for x in range(item_numbers)]
-I = [x for x in range(item_numbers)]
-items = ['a', 'b', 'c', 'd']
+item_numbers = len(item_hash_set)
+items = [str(x) for x in item_hash_set_sorted.keys()]
+S = [int(x) for x in item_hash_set_sorted.values()]
+I = [int(x) for x in item_hash_set_sorted.values()]
+# items = ['a', 'b', 'c', 'd']
 
-
+print(items)
+print(S)
+# print(I)
+# print(S)
 
 """
 --------------------Main--------------------
@@ -232,4 +241,4 @@ def BFS(n):
     print("==========End of present==========")
 
 
-BFS(root)
+# BFS(root)
