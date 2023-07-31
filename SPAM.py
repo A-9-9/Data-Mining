@@ -1,6 +1,6 @@
 import copy
 import math
-
+import os, psutil
 # Definition for Lexicographic tree node.
 class TreeNode:
     def __init__(self, val, bit_map, s_sub_nodes, i_sub_nodes):
@@ -117,7 +117,7 @@ def DFS_Pruning(n, S, I):
 
 # input data from text file
 data = []
-with open('data4.txt') as f:
+with open('test.txt') as f:
     for i in f.readlines():
         sud = [int(x) for x in i.split()]
         data.append(sud)
@@ -210,12 +210,15 @@ print(S)
 """
 --------------------Main--------------------
 """
-
+process = psutil.Process()
+begin_memory = psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2
 recursive_instructions_count = 0
 root = TreeNode('null', None, [], [])
 DFS_Pruning(root, S, I)
 print(recursive_instructions_count)
 
+end_memory = psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2
+print("Memory cost: %s MB." % (end_memory-begin_memory))
 
 def BFS(n):
     print("==========Level present==========")
