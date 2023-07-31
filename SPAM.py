@@ -179,7 +179,7 @@ for k, v in dic.items():
     for i in v:
         # bitmap[item][transaction]
         # bitmaps[i - 1][count] = 1
-        bitmaps[item_hash_set_sorted[i] - 1][count] = 1
+        bitmaps[item_hash_set_sorted[i]][count] = 1
 
     temporary_sequence_count += 1
     count += 1
@@ -215,7 +215,7 @@ begin_memory = psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2
 recursive_instructions_count = 0
 root = TreeNode('null', None, [], [])
 DFS_Pruning(root, S, I)
-print(recursive_instructions_count)
+print("Recursive node count :", recursive_instructions_count)
 
 end_memory = psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2
 print("Memory cost: %s MB." % (end_memory-begin_memory))
@@ -244,4 +244,4 @@ def BFS(n):
     print("==========End of present==========")
 
 
-# BFS(root)
+BFS(root)
